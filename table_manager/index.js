@@ -1,3 +1,19 @@
+const infixToFunction = {
+    "+": (x, y) => x + y,
+    "-": (x, y) => x - y,
+    "*": (x, y) => x * y,
+    "/": (x, y) => x / y,
+}
+
+const infixEval = (str, regex) => str.replace(regex, (_match, arg1,
+                                                      operator, arg2) =>
+  infixToFunction[operator](parseFloat(arg1), parseFloat(arg2)));
+
+const highPrecedence = str => {
+    const regex = /([\d.]+)([*\/])([\d.]+)/;
+    const str2 = infixEval(str, regex);
+    return str === str2 ? str : highPrecedence(str2);
+}
 
 const isEven = (num) => num % 2 === 0;
 const sum = (nums) => nums.reduce((sum, n) => sum + n, 0);
@@ -21,23 +37,44 @@ const spreadsheetFunctions = {
     median,
 }
 
+const applyFunction = (str) => {
+    const noHigh = highPrecedence(str);
+    const infix = /([\d.]+)([+-])([\d.]+)/;
+    const str2 = infixEval(noHigh, infix);
+    const functionCall = /([a-z0-9]*)\(([0-9., ]*)\)(?!.*\()/i;
+
+    const toNumberList = (args) => args.split(',').map(parseFloat);
+
+    const apply =  (fn, args) => {
+
+    }
+
+}
+
 const range = (start, end) => Array(end-start+1).fill(start).
 map((element, index) => element + index);
 
 const charRange = (start, end) => range(start.charCodeAt(0), end.charCodeAt(0)).
 map((code) => String.fromCharCode(code));
 
+
 const evalFormula = (x, cells) => {
-    const idToText = (id) => cells.find(cell => cell.id === id).value;
+    const idToText = id => cells.find(cell => cell.id === id).value;
     const rangeRegex = /([A-J])([1-9][0-9]?):([A-J])([1-9][0-9]?)/gi;
     const rangeFromString = (num1, num2) => range(parseInt(num1), parseInt(num2));
-    const elemValue = (num) => {
-        const inner = (character) => {
+    const elemValue = num => character => idToText(character + num);
 
-        }
+    const addCharacters = character1 => character2 => num =>
+      charRange(character1, character2).map(elemValue(num));
 
-        return inner;
-    }
+    const rangeExpanded = x.replace(rangeRegex, (_match, char1, num1
+      , char2, num2) =>
+      rangeFromString(num1, num2).map(addCharacters(char1)(char2)));
+
+    const cellRegex = /[A-J][1-9][0-9]?/gi;
+    const cellExpanded = rangeExpanded.replace(cellRegex, (match) =>
+      idToText(match.toUpperCase()));
+
 }
 
 window.onload = () => {
